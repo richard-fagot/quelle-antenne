@@ -1,0 +1,22 @@
+#map { height: 100vh; }
+
+/* Chartist customization*/
+.ct-series-a .ct-line {
+    /* Set the colour of this series line */
+    stroke: darkolivegreen;
+    /* Control the thikness of your lines */
+    stroke-width: 1px;
+  }
+
+  .ct-series-a .ct-area {
+    fill: darkolivegreen;
+  }
+
+  .ct-series-b .ct-line {
+    /* Set the colour of this series line */
+    stroke: darkgrey;
+    /* Control the thikness of your lines */
+    stroke-width: 1px;
+  }
+
+ 
