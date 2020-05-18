@@ -1,3 +1,6 @@
 *.csv
 *.db
 *.json
+*.sql
+*.sqlite3*
+ENV

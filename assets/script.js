@@ -3,6 +3,10 @@
     - IGN Geoservices : https://geoservices.ign.fr/documentation/geoservices/index.html
     - Leaflet
     - Chartist
+    - Données Open Data sur les antennes : https://www.data.gouv.fr/en/datasets/donnees-sur-les-installations-radioelectriques-de-plus-de-5-watts-1/
+    - Data model : https://dbdiagram.io/d/5ebd187839d18f5553ff3127
+    - DB Browser for SQLite : https://sqlitebrowser.org/
+    - Miniweb HTTP server for test : https://sourceforge.net/projects/miniweb/
 */
 
 // IGN Geoservices elevation line service url
@@ -21,7 +25,7 @@ map.on('click', onMapClick);
 //
 // Global variables
 //
-var installationPoint = {lat: 0, lon: 0};
+var installationPoint = {lat: 0, lon: 0, haut: 6};
 
 // Saved in variable to be able to remove it when user click other location on the map.
 var marker = L.marker();
@@ -61,8 +65,8 @@ function onMapClick(e) {
     relayMarkers.forEach(relayMarker => relayMarker.remove());
     relayMarkers.length = 0; // empty the array. @see https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
 
-    getNearestRelays(installationPoint, 10).then(
-        nearestRelays => nearestRelays.forEach(relay => setPotentialCandidate(relay, installationPoint))
+    getInPerimetertSupports(installationPoint, 10).then(
+        supports => supports.forEach(support => setPotentialCandidate(support, installationPoint))
     );
 };
 
@@ -72,47 +76,70 @@ function onMapClick(e) {
  * @param {lat, lon} center 
  * @param {float} radius (unit : km)
  */
-async function getNearestRelays(center, radius) {
-    //:TODO - Récupérer les infos en BDD
-    var boundingRelays = await getBoundingRelays();
-    //:
+async function getInPerimetertSupports(center, radius) {
+    const upperLeftLat = 0;
+    const upperLeftLon = 0;
+    const bottomRightLat = 0;
+    const bottomRightLon = 0;
 
-    // All retrieved relays are contained in a bounding box. But we want thoses in a circle.
-    // So here we eliminate all relays far than the circle radius.
-    var res = [];
-    boundingRelays.relays.forEach(relay => {
-        if(distance(center.lat, center.lon, relay.lat, relay.lon, "K") <= radius) {
-            res.push(relay);
+    // Retrieve supports in the bounding box arround the installation position
+    var boundedSupports = await getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon);
+    
+
+    // All retrieved supports are contained in a bounding box. But we want
+    // thoses in a circle defining the perimeter around the installation point.
+    // So here we eliminate all supports further than the circle radius.
+    var inPermiterSupports = [];
+    boundedSupports.supports.forEach(support => {
+        if(distance(center.lat, center.lon, support.lat, support.lon, "K") <= radius) {
+            inPermiterSupports.push(support);
         }
     });
 
-    return res;
+    return inPermiterSupports;
 };
 
-async function getBoundingRelays() {
-    var url = new URL('http://192.168.43.209:8000/assets/relay.json');
+/**
+ * Get all supports in the given bounding box.
+ * 
+ * @param {*} upperLeftLat 
+ * @param {*} upperLeftLon 
+ * @param {*} bottomRightLat 
+ * @param {*} bottomRightLon 
+ */
+
+async function getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon) {
+    var url = new URL('http://192.168.1.105:8000/backend/supports.json');
     
-    var relays = await fetch(url, {
+    var boundedSupports = await fetch(url, {
         headers: {
             'Content-Type': 'application/json'
             // 'Content-Type': 'application/x-www-form-urlencoded',
           },
     }); 
-    return relays.json();
-}
+    return boundedSupports.json();
+};
+
+
 /**
  * Determine wether the relay is "à vue" from the installation point.
  * 
  * @param {*} relay 
  * @param {lat, lon} antennaPos 
  */
-async function setPotentialCandidate(relay, antennaPos) {
-    var elevationLine = await getElevationLine(relay, antennaPos);
-    var elevationPointsCount = elevationLine.elevations.length;
-    var zRelay = elevationLine.elevations[0].z;
-    var zAntennaPos = elevationLine.elevations[elevationPointsCount - 1].z;
+async function setPotentialCandidate(support, antennaPos) {
+    var elevationLine = await getElevationLine(support, antennaPos);
+    //var antennas = await getAntennas(support);
 
-    var relayDistance = distance(relay.lat, relay.lon, antennaPos.lat, antennaPos.lon, "K")*1000;
+    // Set for each antenna if it is "à vue" or not
+    //antennas.antennas.forEach(antenna => isVisible(antenna, elevationLine));
+    
+/*
+    var elevationPointsCount = elevationLine.elevations.length;
+    var zRelay = elevationLine.elevations[0].z + support.haut;
+    var zAntennaPos = elevationLine.elevations[elevationPointsCount - 1].z + antennaPos.haut;
+
+    var relayDistance = distance(support.lat, support.lon, antennaPos.lat, antennaPos.lon, "K")*1000;
     
     var m = (zAntennaPos - zRelay)/(relayDistance);
     var p = zRelay;
@@ -128,18 +155,20 @@ async function setPotentialCandidate(relay, antennaPos) {
         var lon = elevationLine.elevations[x].lon;
         var elevation = elevationLine.elevations[x].z;
 
-        elevationPointDistanceToRelay = Math.trunc(distance(lat, lon, relay.lat, relay.lon, "K")*1000);
+        elevationPointDistanceToRelay = Math.trunc(distance(lat, lon, support.lat, support.lon, "K")*1000);
         var yWave = m*elevationPointDistanceToRelay + p;
         
         elevationLineSerie.push({x: elevationPointDistanceToRelay, y: elevation});
         lineSerie.push({x: elevationPointDistanceToRelay, y: yWave});
 
         if(elevation > yWave) {
-            relay.candidate = false;
+            support.candidate = false;
         }
     }
-
-    displayRelay(relay, elevationLineSerie, lineSerie);
+*/
+var elevationLineSerie = [];
+var lineSerie = [];
+    displayRelay(support, elevationLineSerie, lineSerie);
   
 };
 
@@ -156,6 +185,36 @@ Longitude, ça dépend de la latitude :
 à Lille 1°=+-71 km
 
 Tu peux prendre 76 km de moyenne pour la france, ce sera plus simple
+
+
+Convertir les coordonnées degrés/minutes/secondes en degré
+select case 
+   when dirLat=="S" 
+      then -1*(dLat+mLat/60.0+sLat/3600.0) 
+      else (dLat+mLat/60.0+sLat/3600.0) 
+   end as lat,
+   case
+   when dirLon=="W" 
+      then -1*(dLon+mLon/60.0+sLon/3600.0) 
+      else (dLon+mLon/60.0+sLon/3600.0) 
+   end as lon
+   from (select COR_NB_DG_LAT as dLat, COR_NB_MN_LAT as mLat, COR_NB_SC_LAT as sLat, COR_CD_NS_LAT as dirLat,
+                COR_NB_DG_LON as dLon, COR_NB_MN_LON as mLon, COR_NB_SC_LON as sLon, COR_CD_EW_LON as dirLon
+         from SUP_SUPPORT )
+
+Mettre à jour les supports avec les latitudes et longitudes en degrés
+update SUP_SUPPORT set lat = case 
+   when SUP_SUPPORT.COR_CD_NS_LAT=="S" 
+      then -1*(SUP_SUPPORT.COR_NB_DG_LAT+SUP_SUPPORT.COR_NB_MN_LAT/60.0+SUP_SUPPORT.COR_NB_SC_LAT/3600.0) 
+      else (SUP_SUPPORT.COR_NB_DG_LAT+SUP_SUPPORT.COR_NB_MN_LAT/60.0+SUP_SUPPORT.COR_NB_SC_LAT/3600.0) 
+   end
+   
+update SUP_SUPPORT set lon = case 
+   when SUP_SUPPORT.COR_CD_EW_LON=="W" 
+      then -1*(SUP_SUPPORT.COR_NB_DG_LON+SUP_SUPPORT.COR_NB_MN_LON/60.0+SUP_SUPPORT.COR_NB_SC_LON/3600.0) 
+      else (SUP_SUPPORT.COR_NB_DG_LON+SUP_SUPPORT.COR_NB_MN_LON/60.0+SUP_SUPPORT.COR_NB_SC_LON/3600.0) 
+   end
+   
 */
 
 
@@ -168,7 +227,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
         m = L.marker([relay.lat, relay.lon], {icon: badRelay});
     }
     
-    m.bindPopup('<div class="ct-chart ct-perfect-fourth" id="chart'+relay.id+'"></div>', {minWidth: 350});
+    m.bindPopup('<div class="ct-chart ct-perfect-fourth" id="chart'+relay.id+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
     
     relayMarkers.push(m);
     m.addTo(map);
