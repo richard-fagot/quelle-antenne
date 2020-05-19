@@ -1,6 +1,8 @@
-#map { height: 100vh; }
-
-/* Chartist customization*/
+/*****************************************************************************/
+/*                                                                           */
+/*                           Chartist customization                          */
+/*                                                                           */
+/*****************************************************************************/
 .ct-series-a .ct-line {
     /* Set the colour of this series line */
     stroke: darkolivegreen;
@@ -19,4 +21,33 @@
     stroke-width: 1px;
   }
 
- 
+/*****************************************************************************/
+/*                                                                           */
+/*                                  Flexbox                                  */
+/*                                                                           */
+/*****************************************************************************/
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+#params {
+  width: 20%;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#map { 
+  width: 80%; 
+  height: 100vh; 
+}
+
+#rayon {
+  width: 100%;
+}
+
+#msg {
+  color: red;
+}

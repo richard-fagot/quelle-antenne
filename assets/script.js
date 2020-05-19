@@ -1,5 +1,5 @@
 /* 
-    This project use the following resources :
+    This project uses the following resources :
     - IGN Geoservices : https://geoservices.ign.fr/documentation/geoservices/index.html
     - Leaflet
     - Chartist
@@ -26,6 +26,8 @@ map.on('click', onMapClick);
 // Global variables
 //
 var installationPoint = {lat: 0, lon: 0, haut: 6};
+var progress = 0;
+var supportCount = 0;
 
 // Saved in variable to be able to remove it when user click other location on the map.
 var marker = L.marker();
@@ -58,19 +60,59 @@ function onMapClick(e) {
    
     installationPoint.lat = e.latlng.lat;
     installationPoint.lon = e.latlng.lng;
+    const radius = document.querySelector("#rayon").value;
 
     searchArea.remove();
+    searchArea.setRadius(radius);
     searchArea.setLatLng(e.latlng).addTo(map);
 
     relayMarkers.forEach(relayMarker => relayMarker.remove());
     relayMarkers.length = 0; // empty the array. @see https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
 
-    getInPerimetertSupports(installationPoint, 10).then(
-        supports => supports.forEach(support => setPotentialCandidate(support, installationPoint))
+    initProgress();
+    const msg = document.querySelector("#msg");
+    msg.innerHTML = "";
+    
+    getInPerimetertSupports(installationPoint, radius/1000).then( 
+        // Call all setPotentialCandidate() in parallel
+        //supports => Promise.all(supports.map(support => setPotentialCandidate(support, installationPoint)))
+        // call setPotentialCandidate in sequencial. Use this to limit issue
+        // from the geoservice which cannot respond to too much call at a time
+        supports => {
+            setProgressMax(supports.length);
+            (async function() {
+                for (support of supports) {
+                    await setPotentialCandidate(support, installationPoint);
+                }
+            })()
+        }
+        
+        
     );
 };
 
+function incProgressBar() {
+    progress++;
+    const progressBar = getProgressBar();
+    progressBar.value = progress;
+}
 
+function setProgressMax(max) {
+    const progressBar = getProgressBar();
+    progressBar.max = max;
+}
+
+function initProgress() {
+    progress = 0;
+    supportCount = 0;
+    const progressBar = getProgressBar();
+    progressBar.value = 0;
+    progressBar.max = 0;
+}
+
+function getProgressBar() {
+    return document.querySelector("#progress");
+}
 /**
  * 
  * @param {lat, lon} center 
@@ -96,6 +138,11 @@ async function getInPerimetertSupports(center, radius) {
         }
     });
 
+    if(inPermiterSupports.length > 30) {
+        const msg = document.querySelector("#msg");
+        msg.innerHTML = "<h2>Plus de 30 ("+inPermiterSupports.length+") relais détectés. Diminuez le rayon de recherche.</h2>";
+        inPermiterSupports.length = 0;
+    }
     return inPermiterSupports;
 };
 
@@ -111,12 +158,7 @@ async function getInPerimetertSupports(center, radius) {
 async function getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon) {
     var url = new URL('http://192.168.1.105:8000/backend/supports.json');
     
-    var boundedSupports = await fetch(url, {
-        headers: {
-            'Content-Type': 'application/json'
-            // 'Content-Type': 'application/x-www-form-urlencoded',
-          },
-    }); 
+    var boundedSupports = await fetch(url); 
     return boundedSupports.json();
 };
 
@@ -125,51 +167,74 @@ async function getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bo
  * Determine wether the relay is "à vue" from the installation point.
  * 
  * @param {*} relay 
- * @param {lat, lon} antennaPos 
+ * @param {lat, lon} userPos 
  */
-async function setPotentialCandidate(support, antennaPos) {
-    var elevationLine = await getElevationLine(support, antennaPos);
-    //var antennas = await getAntennas(support);
+async function setPotentialCandidate(support, userPos) {
+    var elevationLine = await getElevationLine(support, userPos);
+    var antennas = support.antennes;
 
     // Set for each antenna if it is "à vue" or not
-    //antennas.antennas.forEach(antenna => isVisible(antenna, elevationLine));
+    antennas.forEach(antenna => isVisible(support, antenna, userPos, elevationLine));
     
-/*
-    var elevationPointsCount = elevationLine.elevations.length;
-    var zRelay = elevationLine.elevations[0].z + support.haut;
-    var zAntennaPos = elevationLine.elevations[elevationPointsCount - 1].z + antennaPos.haut;
+    incProgressBar();
+    var lineSerie = [0];
+    displayRelay(support, lineSerie);
+  
+};
 
-    var relayDistance = distance(support.lat, support.lon, antennaPos.lat, antennaPos.lon, "K")*1000;
+function isVisible(support, antenna, userPos, elevationLine) {
+    var elevationPointsCount = elevationLine.elevations.length;
+    var zRelay = elevationLine.elevations[0].z + antenna.haut;
+    var zuserPos = elevationLine.elevations[elevationPointsCount - 1].z + userPos.haut;
+
+    var relayDistance = distance(support.lat, support.lon, userPos.lat, userPos.lon, "K")*1000;
     
-    var m = (zAntennaPos - zRelay)/(relayDistance);
+    var m = (zuserPos - zRelay)/(relayDistance);
     var p = zRelay;
 
-    var elevationLineSerie = [];
     var lineSerie = [];
-    var distances = [];
 
+    if(!support.hasOwnProperty("elevationLineSerie")) {
+        support.elevationLineSerie = createElevationLineSerie(elevationLine);
+    }
 
+    const elevationLineSerie = support.elevationLineSerie;
+
+    for(var x = 0 ; x < elevationPointsCount ; x++) {
+        const elevation = elevationLineSerie[x].y;
+        const elevationPointDistanceToRelay = elevationLineSerie[x].x;
+
+        const yWave = m*elevationPointDistanceToRelay + p;
+        
+        lineSerie.push({x: elevationPointDistanceToRelay, y: yWave});
+
+        if(elevation > yWave) {
+            antenna.isVisible = 0;
+        }
+    }
+
+    antenna.lineSerie = lineSerie;
+};
+
+function createElevationLineSerie(elevationLine) {
+    const elevationPointsCount = elevationLine.elevations.length;
+
+    const supportLat = elevationLine.elevations[0].lat;
+    const supportLon = elevationLine.elevations[0].lon;
+
+    var elevationLineSerie = [];
 
     for(var x = 0 ; x < elevationPointsCount ; x++) {
         var lat = elevationLine.elevations[x].lat;
         var lon = elevationLine.elevations[x].lon;
         var elevation = elevationLine.elevations[x].z;
 
-        elevationPointDistanceToRelay = Math.trunc(distance(lat, lon, support.lat, support.lon, "K")*1000);
-        var yWave = m*elevationPointDistanceToRelay + p;
+        elevationPointDistanceToSupport = Math.trunc(distance(lat, lon, supportLat, supportLon, "K")*1000);
         
-        elevationLineSerie.push({x: elevationPointDistanceToRelay, y: elevation});
-        lineSerie.push({x: elevationPointDistanceToRelay, y: yWave});
-
-        if(elevation > yWave) {
-            support.candidate = false;
-        }
+        elevationLineSerie.push({x: elevationPointDistanceToSupport, y: elevation});
     }
-*/
-var elevationLineSerie = [];
-var lineSerie = [];
-    displayRelay(support, elevationLineSerie, lineSerie);
-  
+
+    return elevationLineSerie
 };
 
 // select substr(coordonnees, 1, pos-1) as lat, substr(coordonnees, pos+1) as lon
@@ -218,32 +283,36 @@ update SUP_SUPPORT set lon = case
 */
 
 
-
+5
 function displayRelay(relay, profileSerie, lineSerie) {
-    var m;
-    if(relay.candidate) {
-        m = L.marker([relay.lat, relay.lon], {icon: goodRelay});
-    } else {
-        m = L.marker([relay.lat, relay.lon], {icon: badRelay});
+    var m = L.marker([relay.lat, relay.lon], {icon: badRelay});
+
+    for(var i = 0 ; i < relay.antennes.length ; i++) {
+        if(relay.antennes[i].isVisible == 1) {
+            m = L.marker([relay.lat, relay.lon], {icon: goodRelay});
+            break;
+        }
     }
+    
     
     m.bindPopup('<div class="ct-chart ct-perfect-fourth" id="chart'+relay.id+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
     
     relayMarkers.push(m);
     m.addTo(map);
 
-    var tickMax = profileSerie[profileSerie.length-1].x;
+    var tickMax = relay.elevationLineSerie[relay.elevationLineSerie.length-1].x;
     
     m.on('popupopen', function (){
         var data = {
             //labels: ['Relay', 'Antenna'],
             series: [{
                 name: 'altimetricProfile',
-                data: profileSerie
+                data: relay.elevationLineSerie
             }, {
                 name: 'waveDirection',
-                data: lineSerie
-            }]};
+                data: relay.antennes[0].lineSerie
+            }
+        ]};
 
           var options = {
             width: 300,
