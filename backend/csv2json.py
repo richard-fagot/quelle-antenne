@@ -3,19 +3,6 @@ import json
 
 data = {"supports": []};
 
-"""
-{"supports": [
-    {   "sup_id": 123456,
-        "lat": 12.5564,
-        "lon": 132.35,
-        "antennes": [
-            {"haut": 25.7, "aer_id": []},
-            {"haut": 25.7, "aer_id": []}
-        ]
-    }    
-]}
-"""
-
 currentSupId = 0
 currentHaut = 0
 currentSupport = None
@@ -29,7 +16,12 @@ with open('D:/temp/support_antenne_hauteur.csv', newline='') as csvfile:
             i = i + 1
             continue
         
-        (supID, lat, lon, aerID, haut) = row
+        supID = int(row[0])
+        lat = float(row[1].replace(",", "."))
+        lon = float(row[2].replace(",", "."))
+        aerID = int(row[3])
+        haut = float(row[4].replace(",", "."))
+         
         
         if(supID != currentSupId):
             if(currentSupport != None):
@@ -40,7 +32,7 @@ with open('D:/temp/support_antenne_hauteur.csv', newline='') as csvfile:
         if(haut != currentHaut):
             if(currentAntenne != None):
                 currentSupport["antennes"].append(currentAntenne)
-            currentAntenne = {"haut": haut, "aer_ids": [aerID]}
+            currentAntenne = {"haut": haut, "aer_ids": [], "isVisible": 1}
             currentHaut = haut
         
         currentAntenne["aer_ids"].append(aerID)

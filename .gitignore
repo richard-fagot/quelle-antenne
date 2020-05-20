@@ -4,3 +4,4 @@
 *.sql
 *.sqlite3*
 ENV
+__pycache__

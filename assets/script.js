@@ -156,8 +156,8 @@ async function getInPerimetertSupports(center, radius) {
  */
 
 async function getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon) {
-    var url = new URL('http://192.168.1.105:8000/backend/supports.json');
-    
+    //var url = new URL('http://192.168.1.105:8000/backend/supports.json');
+    var url = new URL('http://127.0.0.1:5000/supports/'+upperLeftLat+'/'+upperLeftLon+'/'+bottomRightLat+'/'+bottomRightLon)
     var boundedSupports = await fetch(url); 
     return boundedSupports.json();
 };
