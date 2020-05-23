@@ -60,7 +60,7 @@ function onMapClick(e) {
    
     installationPoint.lat = e.latlng.lat;
     installationPoint.lon = e.latlng.lng;
-    const radius = document.querySelector("#rayon").value;
+    const radius = parseFloat(document.querySelector("#rayon").value);
 
     searchArea.remove();
     searchArea.setRadius(radius);
@@ -119,13 +119,8 @@ function getProgressBar() {
  * @param {float} radius (unit : km)
  */
 async function getInPerimetertSupports(center, radius) {
-    const upperLeftLat = 0;
-    const upperLeftLon = 0;
-    const bottomRightLat = 0;
-    const bottomRightLon = 0;
-
     // Retrieve supports in the bounding box arround the installation position
-    var boundedSupports = await getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon);
+    var boundedSupports = await getBoundedSupports(center, radius);
     
 
     // All retrieved supports are contained in a bounding box. But we want
@@ -155,9 +150,9 @@ async function getInPerimetertSupports(center, radius) {
  * @param {*} bottomRightLon 
  */
 
-async function getBoundedSupports(upperLeftLat, upperLeftLon, bottomRightLat, bottomRightLon) {
+async function getBoundedSupports(center, radius) {
     //var url = new URL('http://192.168.1.105:8000/backend/supports.json');
-    var url = new URL('http://127.0.0.1:5000/supports/'+upperLeftLat+'/'+upperLeftLon+'/'+bottomRightLat+'/'+bottomRightLon)
+    var url = new URL('http://127.0.0.1:5000/supports/'+center.lat+'/'+center.lon+'/'+radius.toPrecision(3));
     var boundedSupports = await fetch(url); 
     return boundedSupports.json();
 };
@@ -295,7 +290,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
     }
     
     
-    m.bindPopup('<div class="ct-chart ct-perfect-fourth" id="chart'+relay.id+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
+    m.bindPopup('<div>Support : ' + relay.supId + '<div class="ct-chart ct-perfect-fourth" id="chart'+relay.supId+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
     
     relayMarkers.push(m);
     m.addTo(map);
@@ -315,8 +310,8 @@ function displayRelay(relay, profileSerie, lineSerie) {
         ]};
 
           var options = {
-            width: 300,
-            height: 200,
+            width: 350,
+            height: 140,
             showPoint: false,
             lineSmooth: true,
             chartPadding: {right: 50},
@@ -329,7 +324,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
                 //showLabel: false
             },
             axisY: {
-                showGrid: false,
+                showGrid: true,
             },
             series:{
                 'altimetricProfile': {showArea: true}
@@ -338,7 +333,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
           // Create a new line chart object where as first parameter we pass in a selector
           // that is resolving to our chart container element. The Second parameter
           // is the actual data object.
-          new Chartist.Line('#chart'+relay.id, data, options);
+          new Chartist.Line('#chart'+relay.supId, data, options);
     });
     
 
