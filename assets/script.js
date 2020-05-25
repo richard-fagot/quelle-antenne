@@ -46,6 +46,23 @@ var LeafIcon = L.Icon.extend({
     }
 });
 var goodRelay = new LeafIcon({iconUrl: '/assets/img/good-relay.png'});
+let oRelay = new LeafIcon({iconUrl: '/assets/img/marker-o.png'});
+let bRelay = new LeafIcon({iconUrl: '/assets/img/marker-b.png'});
+let boRelay = new LeafIcon({iconUrl: '/assets/img/marker-bo.png'});
+let fRelay = new LeafIcon({iconUrl: '/assets/img/marker-f.png'});
+let foRelay = new LeafIcon({iconUrl: '/assets/img/marker-fo.png'});
+let fbRelay = new LeafIcon({iconUrl: '/assets/img/marker-fb.png'});
+let fboRelay = new LeafIcon({iconUrl: '/assets/img/marker-fbo.png'});
+let sRelay = new LeafIcon({iconUrl: '/assets/img/marker-s.png'});
+let soRelay = new LeafIcon({iconUrl: '/assets/img/marker-so.png'});
+let sbRelay = new LeafIcon({iconUrl: '/assets/img/marker-sb.png'});
+let sboRelay = new LeafIcon({iconUrl: '/assets/img/marker-sbo.png'});
+let sfRelay = new LeafIcon({iconUrl: '/assets/img/marker-sf.png'});
+let sfoRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfo.png'});
+let sfbRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfb.png'});
+let sfboRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfbo.png'});
+
+
 var badRelay =  new LeafIcon({iconUrl: '/assets/img/bad-relay.png'});
 
 
@@ -282,15 +299,74 @@ update SUP_SUPPORT set lon = case
 function displayRelay(relay, profileSerie, lineSerie) {
     var m = L.marker([relay.lat, relay.lon], {icon: badRelay});
 
-    for(var i = 0 ; i < relay.antennes.length ; i++) {
-        if(relay.antennes[i].isVisible == 1) {
-            m = L.marker([relay.lat, relay.lon], {icon: goodRelay});
-            break;
+    let isSupportVisible = false;
+    let visibleOperators = new Set();
+    let maskedOperators = new Set();
+    for(ant of relay.antennes) {
+        if(ant.isVisible == 1) {
+            isSupportVisible = true;
+            for(aer of ant.aer_ids) {
+                for( op of aer.operators) {
+                    visibleOperators.add(op);
+                    if(maskedOperators.has(op)) {
+                        maskedOperators.delete(op);
+                    }
+                }
+            }
+        } else {
+            for(aer of ant.aer_ids) {
+                for( op of aer.operators) {
+                    if(!visibleOperators.has(op)) {
+                        maskedOperators.add(op);
+                    }
+                }
+            }
         }
     }
-    
-    
-    m.bindPopup('<div>Support : ' + relay.supId + '<div class="ct-chart ct-perfect-fourth" id="chart'+relay.supId+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
+    /*
+    for(let i = 0 ; i < relay.antennes.length ; i++) {
+        if(relay.antennes[i].isVisible == 1) {
+            isSupportVisible = true;
+            let aers = relay.antennes[i].aerIDs;
+            for(let j = 0 ; j < aers.length ; j++) {
+                for( op in aers.operators) {
+                    visibleOperators.add(op);
+                }
+            }
+        }
+    }
+    */    
+   let opMarkerString = "";
+
+    if(isSupportVisible) {
+        for(op of visibleOperators) {
+            if("SFR".localeCompare(op) == 0) {
+                opMarkerString += 's';
+            } else if("FREE MOBILE".localeCompare(op) == 0) {
+                opMarkerString += 'f';
+            } else if("BOUYGUES TELECOM".localeCompare(op) == 0) {
+                opMarkerString += 'b';
+            } else if("ORANGE".localeCompare(op) == 0) {
+                opMarkerString += 'o';
+            } 
+        }
+
+        m = L.marker([relay.lat, relay.lon], {icon: eval(opMarkerString+'Relay')});
+    }
+
+    let ops = '<div><b>Opérateurs accessibles</b>';
+    for(op of visibleOperators) {
+        ops += op + ',';
+    }
+    ops += '</div>';
+
+    let maskedOps = '<div><b>Opérateurs masqués par le relief</b>';
+    for(op of maskedOperators) {
+        maskedOps += op + ',';
+    }
+    maskedOps += '</div>';
+
+    m.bindPopup('<div>Support : ' + relay.supId + '</div>'+ops+maskedOps+'<div class="ct-chart ct-perfect-fourth" id="chart'+relay.supId+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
     
     relayMarkers.push(m);
     m.addTo(map);
