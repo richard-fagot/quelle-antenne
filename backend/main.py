@@ -7,8 +7,10 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
+app.run(debug=True)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 @app.route('/')
 @cross_origin()
@@ -20,6 +22,7 @@ def hello_world():
 def getSupport(centerLat, centerLon, distance):
     upperLeftLat, upperLeftLon = destination(centerLat, centerLon, distance, 315)
     bottomRightLat, bottomRigthLon = destination(centerLat, centerLon, distance, 135)
+    app.logger.debug('Bounding box ('+str(upperLeftLat)+', '+str(upperLeftLon)+') ('+str(bottomRightLat)+', '+str(bottomRigthLon)+')')
     return antennasToJson(fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon))
     
 
@@ -28,7 +31,7 @@ def fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon):
     conn = sqlite3.connect('antennes.sqlite3')
     c = conn.cursor()
 
-    c.execute('select distinct sup.sup_id, lat, lon, ant.AER_ID, AER_NB_ALT_BAS, ex.adm_lb_nom '
+    c.execute('select distinct sup.sup_id, lat, lon, ant.AER_ID, AER_NB_ALT_BAS, AER_NB_AZIMUT, ex.adm_lb_nom '
     'from SUP_SUPPORT sup '
     'inner join SUP_STATION sta '
     'on sta.sta_nm_anfr = sup.sta_nm_anfr '
@@ -60,12 +63,14 @@ def antennasToJson(rows):
     currentAntenna = None
 
     for row in rows:
+        app.logger.debug(row)
         supID = int(row[0])
         lat = float(row[1])
         lon = float(row[2])
         aerID = int(row[3])
         haut = float(row[4].replace(",", "."))
-        operator = row[5]
+        azimut = float(row[5].replace(",", "."))
+        operator = row[6]
 
 
         if(supID != currentSupId):
@@ -75,7 +80,7 @@ def antennasToJson(rows):
             currentAntennaHeight = {"haut": haut, "aer_ids": [], "isVisible": 1}
             currentSupport["antennes"].append(currentAntennaHeight)
 
-            currentAntenna = {"aer_id" : aerID, "operators" : []}
+            currentAntenna = {"aer_id" : aerID, "azimut": azimut, "operators" : []}
             currentAntennaHeight["aer_ids"].append(currentAntenna)
 
             currentSupId = supID
@@ -88,7 +93,7 @@ def antennasToJson(rows):
             currentHaut = haut
 
         if(aerID != currentAerId):
-            currentAntenna = {"aer_id" : aerID, "operators": []}
+            currentAntenna = {"aer_id" : aerID, "azimut": azimut, "operators": []}
             currentAntennaHeight["aer_ids"].append(currentAntenna)
             currentAerId = aerID
 
