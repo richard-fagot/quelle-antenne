@@ -51,16 +51,16 @@ let bRelay = new LeafIcon({iconUrl: '/assets/img/marker-b.png'});
 let boRelay = new LeafIcon({iconUrl: '/assets/img/marker-bo.png'});
 let fRelay = new LeafIcon({iconUrl: '/assets/img/marker-f.png'});
 let foRelay = new LeafIcon({iconUrl: '/assets/img/marker-fo.png'});
-let fbRelay = new LeafIcon({iconUrl: '/assets/img/marker-fb.png'});
-let fboRelay = new LeafIcon({iconUrl: '/assets/img/marker-fbo.png'});
+let bfRelay = new LeafIcon({iconUrl: '/assets/img/marker-fb.png'});
+let bfoRelay = new LeafIcon({iconUrl: '/assets/img/marker-fbo.png'});
 let sRelay = new LeafIcon({iconUrl: '/assets/img/marker-s.png'});
-let soRelay = new LeafIcon({iconUrl: '/assets/img/marker-so.png'});
-let sbRelay = new LeafIcon({iconUrl: '/assets/img/marker-sb.png'});
-let sboRelay = new LeafIcon({iconUrl: '/assets/img/marker-sbo.png'});
-let sfRelay = new LeafIcon({iconUrl: '/assets/img/marker-sf.png'});
-let sfoRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfo.png'});
-let sfbRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfb.png'});
-let sfboRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfbo.png'});
+let osRelay = new LeafIcon({iconUrl: '/assets/img/marker-so.png'});
+let bsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sb.png'});
+let bosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sbo.png'});
+let fsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sf.png'});
+let fosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfo.png'});
+let bfsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfb.png'});
+let bfosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfbo.png'});
 
 
 var badRelay =  new LeafIcon({iconUrl: '/assets/img/bad-relay.png'});
@@ -339,15 +339,16 @@ function displayRelay(relay, profileSerie, lineSerie) {
    let opMarkerString = "";
 
     if(isSupportVisible) {
-        for(op of visibleOperators) {
-            if("SFR".localeCompare(op) == 0) {
-                opMarkerString += 's';
+        const sortedOperators = [...visibleOperators].sort();
+        for(op of sortedOperators) {
+            if("BOUYGUES TELECOM".localeCompare(op) == 0) {
+                opMarkerString += 'b';
             } else if("FREE MOBILE".localeCompare(op) == 0) {
                 opMarkerString += 'f';
-            } else if("BOUYGUES TELECOM".localeCompare(op) == 0) {
-                opMarkerString += 'b';
             } else if("ORANGE".localeCompare(op) == 0) {
                 opMarkerString += 'o';
+            } else if("SFR".localeCompare(op) == 0) {
+                opMarkerString += 's';
             } 
         }
 
