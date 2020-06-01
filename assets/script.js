@@ -13,7 +13,8 @@
 var elevationLineServiceURL = 'https://wxs.ign.fr/choisirgeoportail/alti/rest/elevationLine.json';
 
 // Set on the approximated France center with zoom that display it entirely
-var map = L.map('map').setView([47.234, 2.670], 6);
+const center = [47.090086, 2.396226];
+var map = L.map('map').setView(center, 8);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -45,22 +46,22 @@ var LeafIcon = L.Icon.extend({
         shadowUrl: '/assets/img/marker-shadow.png',
     }
 });
-var goodRelay = new LeafIcon({iconUrl: '/assets/img/good-relay.png'});
-let oRelay = new LeafIcon({iconUrl: '/assets/img/marker-o.png'});
-let bRelay = new LeafIcon({iconUrl: '/assets/img/marker-b.png'});
-let boRelay = new LeafIcon({iconUrl: '/assets/img/marker-bo.png'});
-let fRelay = new LeafIcon({iconUrl: '/assets/img/marker-f.png'});
-let foRelay = new LeafIcon({iconUrl: '/assets/img/marker-fo.png'});
-let bfRelay = new LeafIcon({iconUrl: '/assets/img/marker-fb.png'});
-let bfoRelay = new LeafIcon({iconUrl: '/assets/img/marker-fbo.png'});
-let sRelay = new LeafIcon({iconUrl: '/assets/img/marker-s.png'});
-let osRelay = new LeafIcon({iconUrl: '/assets/img/marker-so.png'});
-let bsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sb.png'});
-let bosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sbo.png'});
-let fsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sf.png'});
-let fosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfo.png'});
-let bfsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfb.png'});
-let bfosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfbo.png'});
+var goodRelay = new LeafIcon({iconUrl: '/assets/img/good-relay.png', iconAnchor:   [12, 41],});
+let oRelay = new LeafIcon({iconUrl: '/assets/img/marker-o.png', iconAnchor:   [12, 41],});
+let bRelay = new LeafIcon({iconUrl: '/assets/img/marker-b.png', iconAnchor:   [12, 41],});
+let boRelay = new LeafIcon({iconUrl: '/assets/img/marker-bo.png', iconAnchor:   [12, 41],});
+let fRelay = new LeafIcon({iconUrl: '/assets/img/marker-f.png', iconAnchor:   [12, 41],});
+let foRelay = new LeafIcon({iconUrl: '/assets/img/marker-fo.png', iconAnchor:   [12, 41],});
+let bfRelay = new LeafIcon({iconUrl: '/assets/img/marker-fb.png', iconAnchor:   [12, 41],});
+let bfoRelay = new LeafIcon({iconUrl: '/assets/img/marker-fbo.png', iconAnchor:   [12, 41],});
+let sRelay = new LeafIcon({iconUrl: '/assets/img/marker-s.png', iconAnchor:   [12, 41],});
+let osRelay = new LeafIcon({iconUrl: '/assets/img/marker-so.png', iconAnchor:   [12, 41],});
+let bsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sb.png', iconAnchor:   [12, 41],});
+let bosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sbo.png', iconAnchor:   [12, 41],});
+let fsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sf.png', iconAnchor:   [12, 41],});
+let fosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfo.png', iconAnchor:   [12, 41],});
+let bfsRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfb.png', iconAnchor:   [12, 41],});
+let bfosRelay = new LeafIcon({iconUrl: '/assets/img/marker-sfbo.png', iconAnchor:   [12, 41],});
 
 
 var badRelay =  new LeafIcon({iconUrl: '/assets/img/bad-relay.png'});
@@ -312,6 +313,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
                         maskedOperators.delete(op);
                     }
                 }
+                drawAzimut(relay, aer.azimut);
             }
         } else {
             for(aer of ant.aer_ids) {
@@ -417,7 +419,21 @@ function displayRelay(relay, profileSerie, lineSerie) {
 }
 
 
+function drawAzimut(relay, azimut) {
+    let bearing = azimut;
+    if(azimut > 180) {
+        bearing = -360 + azimut;
+    }
+    // In turfjs coodinates are [Lon, Lat] but in leaflets they are [Lat, Lon]
+    const dest = turf.rhumbDestination([relay.lon, relay.lat], 1, bearing, {units: 'kilometers'});
+    const d = turf.getCoord(dest);
 
+    const latlngs = [
+        [relay.lat, relay.lon],
+        [d[1], d[0]]
+    ];
+    const polyline = L.polyline(latlngs).addTo(map);
+}
 
 // Prendre 1 point de mesure tous les 10m
 // Au-delà de 2000m prendre toujours 200 points

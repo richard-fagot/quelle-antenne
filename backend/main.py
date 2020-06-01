@@ -103,6 +103,7 @@ def antennasToJson(rows):
 
 def destination(lat, lon, distance, bearing):
     """ Compute the point located at the distance and bearing from the given {lat, lon} origin point.
+        Inspired by https://gist.github.com/marcus-at-localhost/39a346e7d7f872187124af9cd582f833
 
     Parameters
     ----------
@@ -116,7 +117,7 @@ def destination(lat, lon, distance, bearing):
     json
         lat and lon of the destination point.
     """
-    earthRadius = 6378.1 # Equatorial radius 
+    earthRadius = 6378.1 # Equatorial radius for unity in kilometers
 
     latRad = math.radians(lat)
     lonRad = math.radians(lon)
