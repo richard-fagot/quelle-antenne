@@ -313,7 +313,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
                         maskedOperators.delete(op);
                     }
                 }
-                drawAzimut(relay, aer.azimut);
+                drawAzimut(relay, aer.azimut, visibleOperators);
             }
         } else {
             for(aer of ant.aer_ids) {
@@ -419,20 +419,51 @@ function displayRelay(relay, profileSerie, lineSerie) {
 }
 
 
-function drawAzimut(relay, azimut) {
+function drawAzimut(relay, azimut, visibleOperators) {
+    //turf bearing interval is -180/180 from north. But data from anfr is 0/360 from north.
+    // Here we convert it.
     let bearing = azimut;
     if(azimut > 180) {
         bearing = -360 + azimut;
     }
+
+    let ops = visibleOperators.entries();
+    const nbOP = visibleOperators.size;
+    const stepDistance = 1.0/nbOP;
+    let previousOrigin = [relay.lon, relay.lat];
+    for(let i = 0 ; i < nbOP ; i++) {
+        const dest = turf.rhumbDestination(previousOrigin, stepDistance, bearing, {units: 'kilometers'});
+        const d = turf.getCoord(dest);
+
+        const latlngs = [
+            [previousOrigin[1], previousOrigin[0]],
+            [d[1], d[0]]
+        ];
+
+        let op = ops.next().value[1];
+        let color = {color: 'black'};
+        if("BOUYGUES TELECOM".localeCompare(op) == 0) {
+            color = {color: 'blue'};
+        } else if("FREE MOBILE".localeCompare(op) == 0) {
+            color = {color: 'white'};
+        } else if("ORANGE".localeCompare(op) == 0) {
+            color = {color: 'orange'};
+        } else if("SFR".localeCompare(op) == 0) {
+            color = {color: 'red'};
+        } 
+        
+        const polyline = L.polyline(latlngs, color).addTo(map);
+        previousOrigin = d;
+    }
     // In turfjs coodinates are [Lon, Lat] but in leaflets they are [Lat, Lon]
-    const dest = turf.rhumbDestination([relay.lon, relay.lat], 1, bearing, {units: 'kilometers'});
+    /*const dest = turf.rhumbDestination([relay.lon, relay.lat], 1, bearing, {units: 'kilometers'});
     const d = turf.getCoord(dest);
 
     const latlngs = [
         [relay.lat, relay.lon],
         [d[1], d[0]]
     ];
-    const polyline = L.polyline(latlngs).addTo(map);
+    const polyline = L.polyline(latlngs).addTo(map);*/
 }
 
 // Prendre 1 point de mesure tous les 10m
