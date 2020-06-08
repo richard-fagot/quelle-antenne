@@ -31,6 +31,9 @@ def fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon):
     conn = sqlite3.connect('antennes.sqlite3')
     c = conn.cursor()
 
+    """ Get only 4G """
+    """ Remove parabolic antennas which correspond to the link between relay """
+
     c.execute('select distinct sup.sup_id, lat, lon, ant.AER_ID, AER_NB_ALT_BAS, AER_NB_AZIMUT, ex.adm_lb_nom '
     'from SUP_SUPPORT sup '
     'inner join SUP_STATION sta '
@@ -41,9 +44,12 @@ def fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon):
     'on ant.sta_nm_anfr = sup.sta_nm_anfr '
     'inner join SUP_EMETTEUR em '
     'on em.sta_nm_anfr = sup.sta_nm_anfr '
+    'inner join SUP_TYPE_ANTENNE t '
+	'on t.TAE_ID = ant.TAE_ID '
     'where sup.lat < ? and sup.lat > ? and sup.lon > ? and sup.lon < ? '
     'and ex.ADM_ID in (6, 137, 23, 240)  '
-    'and em.emr_lb_systeme like "LTE%" '
+    'and em.emr_lb_systeme like "LTE%" ' 
+    'and t.TAE_ID <> 17 ' 
     'order by sup.sup_id, AER_NB_ALT_BAS, ant.AER_ID;', (upperLeftLat, bottomRightLat, upperLeftLon, bottomRigthLon,))
 
 
