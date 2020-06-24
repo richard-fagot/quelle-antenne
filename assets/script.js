@@ -357,13 +357,13 @@ function displayRelay(relay, profileSerie, lineSerie) {
         m = L.marker([relay.lat, relay.lon], {icon: eval(opMarkerString+'Relay')});
     }
 
-    let ops = '<div><b>Opérateurs accessibles</b>';
+    let ops = '<div><p><b>Opérateurs "à vue"</b></p>';
     for(op of visibleOperators) {
         ops += op + ',';
     }
     ops += '</div>';
 
-    let maskedOps = '<div><b>Opérateurs masqués par le relief</b>';
+    let maskedOps = '<div><p><b>Opérateurs masqués par le relief</b></p>';
     for(op of maskedOperators) {
         maskedOps += op + ',';
     }
