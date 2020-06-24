@@ -1,3 +1,5 @@
+https://dbdiagram.io/d/5ebd187839d18f5553ff3127
+
 Aide à l'installation d'une antenne 4G chez soi.
 
 Ce projet propose une carte permettant d'identifier les antennes relai 4G "à vue" de là où on souhaite son antenne 4G pour améliorer sa réception.
