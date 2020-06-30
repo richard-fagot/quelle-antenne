@@ -28,7 +28,7 @@ def getSupport(centerLat, centerLon, distance):
 
 def fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon):
     
-    conn = sqlite3.connect('antennes.sqlite3')
+    conn = sqlite3.connect('quelle-antenne.sqlite3')
     c = conn.cursor()
 
     """ Get only 4G """

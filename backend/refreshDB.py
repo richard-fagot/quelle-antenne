@@ -4,7 +4,7 @@ import os
 
 DB_NAME = 'quelle-antenne.sqlite3'
 UNZIP_DIR = './data/'
-
+SQLITE_PATH = os.getenv('SQLITE_HOME')
 
 def DLInstallRadioSup5W(url):
     """ Inspired by https://www.codementor.io/@aviaryan/downloading-files-from-urls-in-python-77q3bs0un
@@ -35,18 +35,18 @@ def importRadioData(*args):
     #    filename = DLInstallRadioSup5W(url)
     #    unzipRadioData(filename, UNZIP_DIR)
     
-    os.system('.\sqlite3.exe -batch ' + DB_NAME + ' ".read ./script/create-quelle-antenne.sql"')
+    os.system(SQLITE_PATH + ' -batch ' + DB_NAME + ' ".read ./script/create-quelle-antenne.sql"')
 
     files = filter(lambda file: file.endswith('.txt'), os.listdir(UNZIP_DIR))
     for file in files:
         convert2UTF8(file)
         tableName = file.split('.')[0]
         print('Import '+tableName)
-        cmd = '.\sqlite3.exe -csv -separator ";" -batch ' + DB_NAME + ' ".import ' + UNZIP_DIR + file + ' ' + tableName
+        cmd = SQLITE_PATH + ' -csv -separator ";" -batch ' + DB_NAME + ' ".import ' + UNZIP_DIR + file + ' ' + tableName
         print(cmd)
         os.system(cmd) 
 
-    os.system('.\sqlite3.exe -batch ' + DB_NAME + ' ".read ./script/remove-column-names.sql"')
+    os.system(SQLITE_PATH + ' -batch ' + DB_NAME + ' ".read ./script/remove-column-names.sql"')
 
 def convert2UTF8(filename):
     srcfile = UNZIP_DIR+filename

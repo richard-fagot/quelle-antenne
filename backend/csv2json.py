@@ -1,3 +1,5 @@
+# il me semble que c'était juste pour me faire un exemple de json généré à partir d'un extract pour les tests.
+# on doit pouvoir supprimer ce fichier.
 import csv
 import json
 

@@ -29,6 +29,7 @@ map.on('click', onMapClick);
 var installationPoint = {lat: 0, lon: 0, haut: 6};
 var progress = 0;
 var supportCount = 0;
+const MAX_SAMPLING = 200;
 
 // Saved in variable to be able to remove it when user click other location on the map.
 var marker = L.marker();
@@ -39,6 +40,7 @@ var searchArea = L.circle([0,0],{
     radius: 10000
 });
 var relayMarkers = new Array();
+var azimuts = new Array();
 
 // Relay icon definitions
 var LeafIcon = L.Icon.extend({
@@ -86,6 +88,9 @@ function onMapClick(e) {
 
     relayMarkers.forEach(relayMarker => relayMarker.remove());
     relayMarkers.length = 0; // empty the array. @see https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
+
+    azimuts.forEach(azimut => azimut.remove());
+    azimuts.length = 0;
 
     initProgress();
     const msg = document.querySelector("#msg");
@@ -453,6 +458,8 @@ function drawAzimut(relay, azimut, visibleOperators) {
         } 
         
         const polyline = L.polyline(latlngs, color).addTo(map);
+        azimuts.push(polyline);
+
         previousOrigin = d;
     }
     // In turfjs coodinates are [Lon, Lat] but in leaflets they are [Lat, Lon]
@@ -466,8 +473,7 @@ function drawAzimut(relay, azimut, visibleOperators) {
     const polyline = L.polyline(latlngs).addTo(map);*/
 }
 
-// Prendre 1 point de mesure tous les 10m
-// Au-delà de 2000m prendre toujours 200 points
+
 /**
  * 
  * @param {*} relay 
@@ -480,9 +486,16 @@ async function getElevationLine(relay, antennaPos) {
     var lats = relay.lat + '|' + antennaPos.lat;
     var longs = relay.lon + '|' + antennaPos.lon;
 
+    // Take 1 point each 10m.
+    // If support farther than 2000m take 200 points.
+    // (yes, that means take 1 point each 10m with a max of 200 points)
+    // It's just to not overload IGN servers. Notice that in the worst case of 
+    // a radius of 10 km we have 1 point each 50 m which is acurately enough
+    // for our purpose.
     var d = distance(relay.lat, relay.lon, antennaPos.lat, antennaPos.lon, "K");
-    var sampling = 200;
-    if (d < 2) {samplig = d * 1000 / 10};
+    //var sampling = 200;
+    //if (d < 2) {samplig = d * 1000 / 10};
+    var sampling = Math.min(d * 1000 / 10, MAX_SAMPLING);
 
     var params = {lat: lats, lon: longs, zonly: true, sampling: sampling};
 
