@@ -7,7 +7,6 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
-app.run(debug=True)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -136,3 +135,7 @@ def destination(lat, lon, distance, bearing):
     new_longitude = lonRad + math.atan2(math.sin(bearingRad) * math.sin(distance / earthRadius) * math.cos(latRad), math.cos(distance / earthRadius) - math.sin(latRad) * math.sin(new_latitude))
 
     return [math.degrees(new_latitude), math.degrees(new_longitude)]
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
