@@ -31,9 +31,9 @@ def unzipRadioData(zipName, destination):
     zip_ref.close()
 
 def importRadioData(*args):
-    #for url in args:
-    #    filename = DLInstallRadioSup5W(url)
-    #    unzipRadioData(filename, UNZIP_DIR)
+    for url in args:
+        filename = DLInstallRadioSup5W(url)
+        unzipRadioData(filename, UNZIP_DIR)
     
     os.system(SQLITE_PATH + ' -batch ' + DB_NAME + ' ".read ./script/create-quelle-antenne.sql"')
 
@@ -74,7 +74,7 @@ data_url = 'https://www.data.gouv.fr/en/datasets/r/09298944-b4d5-4d19-a7e9-52718
 
 if (not os.path.exists(UNZIP_DIR)):
     os.mkdir(UNZIP_DIR)
-    
+
 importRadioData(ref_url, data_url)
 
 
