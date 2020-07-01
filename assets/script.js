@@ -11,6 +11,7 @@
 
 // IGN Geoservices elevation line service url
 var elevationLineServiceURL = 'https://wxs.ign.fr/choisirgeoportail/alti/rest/elevationLine.json';
+const BACKEND_ROOT_URL = 'http://127.0.0.1:5000';
 
 // Set on the approximated France center with zoom that display it entirely
 const center = [47.090086, 2.396226];
@@ -175,7 +176,7 @@ async function getInPerimetertSupports(center, radius) {
 
 async function getBoundedSupports(center, radius) {
     //var url = new URL('http://192.168.1.105:8000/backend/supports.json');
-    var url = new URL('http://127.0.0.1:5000/supports/'+center.lat+'/'+center.lon+'/'+radius.toPrecision(3));
+    var url = new URL(BACKEND_ROOT_URL + '/supports/'+center.lat+'/'+center.lon+'/'+radius.toPrecision(3));
     var boundedSupports = await fetch(url); 
     return boundedSupports.json();
 };
