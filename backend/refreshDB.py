@@ -72,6 +72,9 @@ def convert2UTF8(filename):
 ref_url = 'https://www.data.gouv.fr/en/datasets/r/06b0b54d-ff22-49e5-90e1-ee31872ff228'
 data_url = 'https://www.data.gouv.fr/en/datasets/r/09298944-b4d5-4d19-a7e9-527183e1bf99'
 
+if (not os.path.exists(UNZIP_DIR)):
+    os.mkdir(UNZIP_DIR)
+    
 importRadioData(ref_url, data_url)
 
 
