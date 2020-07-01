@@ -42,7 +42,7 @@ def importRadioData(*args):
         convert2UTF8(file)
         tableName = file.split('.')[0]
         print('Import '+tableName)
-        cmd = SQLITE_PATH + ' -csv -separator ";" -batch ' + DB_NAME + ' ".import ' + UNZIP_DIR + file + ' ' + tableName
+        cmd = SQLITE_PATH + ' -csv -separator ";" -batch ' + DB_NAME + ' ".import ' + UNZIP_DIR + file + ' ' + tableName + '"'
         print(cmd)
         os.system(cmd) 
 
