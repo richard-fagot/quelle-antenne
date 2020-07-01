@@ -1,7 +1,7 @@
 *.csv
 *.db
 *.json
-*.sql
+sql.sql
 *.sqlite3*
 ENV
 __pycache__
