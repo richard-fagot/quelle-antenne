@@ -68,13 +68,18 @@ def antennasToJson(rows):
     currentAntenna = None
 
     for row in rows:
+        print(row)
         app.logger.debug(row)
         supID = int(row[0])
         lat = float(row[1])
         lon = float(row[2])
         aerID = int(row[3])
         haut = float(row[4].replace(",", "."))
-        azimut = float(row[5].replace(",", "."))
+        # If the value corresponding to azimut is not set the antenna is
+        # omnidirectionnal. A negative azimut represents that type of antenna.
+        azimut = -1
+        if(not (row[5] == '') ):
+            azimut = float(row[5].replace(",", "."))
         operator = row[6]
 
 
