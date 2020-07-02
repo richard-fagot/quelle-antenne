@@ -498,9 +498,11 @@ async function getElevationLine(relay, antennaPos) {
     // a radius of 10 km we have 1 point each 50 m which is acurately enough
     // for our purpose.
     var d = distance(relay.lat, relay.lon, antennaPos.lat, antennaPos.lon, "K");
-    //var sampling = 200;
-    //if (d < 2) {samplig = d * 1000 / 10};
-    var sampling = Math.min(d * 1000 / 10, MAX_SAMPLING);
+    
+    // service specifies sampling min value must be at least 2.
+    var sampling = Math.max(2, Math.round(d * 1000 / 10));
+    // But it specifies also a max. Moreover, for our case we want this max to be 200.
+    sampling = Math.min(sampling, MAX_SAMPLING);
 
     var params = {lat: lats, lon: longs, zonly: true, sampling: sampling};
 
