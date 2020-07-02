@@ -65,9 +65,6 @@ def convert2UTF8(filename):
     except UnicodeEncodeError:
         print('Encode Error')
 
-#print('Download data')
-#data_url = 'https://www.data.gouv.fr/en/datasets/r/06b0b54d-ff22-49e5-90e1-ee31872ff228'
-#data_filename = DLInstallRadioSup5W(data_url)
 
 ref_url = 'https://www.data.gouv.fr/en/datasets/r/06b0b54d-ff22-49e5-90e1-ee31872ff228'
 data_url = 'https://www.data.gouv.fr/en/datasets/r/09298944-b4d5-4d19-a7e9-527183e1bf99'
