@@ -81,6 +81,13 @@ function onMapClick(e) {
    
     installationPoint.lat = e.latlng.lat;
     installationPoint.lon = e.latlng.lng;
+    // Radius correspond to the max antenna range. This range depends on a lot
+    // of criteria (frequency, obstacle, antenna type, propagation…). The 
+    // literature indicates a max range from 30 to 70 km 
+    // (@see https://en.wikipedia.org/wiki/Cell_site#Range 
+    // or https://selectra.info/telecom/guides/technologies/antenne-4g). 
+    // It's very imprecise so the limit is set to 30 km (see index.html) to not
+    // overload the IGN server but allows to give a good help in most cases.
     const radius = parseFloat(document.querySelector("#rayon").value);
 
     searchArea.remove();
