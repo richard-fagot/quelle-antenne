@@ -49,6 +49,7 @@ def fetchAntennas(upperLeftLat, upperLeftLon, bottomRightLat, bottomRigthLon):
     'and ex.ADM_ID in (6, 137, 23, 240)  '
     'and em.emr_lb_systeme like "LTE%" ' 
     'and t.TAE_ID <> 17 ' 
+    'and AER_NB_ALT_BAS >= 0 '
     'order by sup.sup_id, AER_NB_ALT_BAS, ant.AER_ID;', (upperLeftLat, bottomRightLat, upperLeftLon, bottomRigthLon,))
 
 
