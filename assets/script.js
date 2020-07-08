@@ -13,9 +13,10 @@
 var elevationLineServiceURL = 'https://wxs.ign.fr/choisirgeoportail/alti/rest/elevationLine.json';
 const BACKEND_ROOT_URL = 'http://' + window.location.host + ':5000';
 
-// Set on the approximated France center with zoom that displays it entirely
-const center = [47.090086, 2.396226];
-var map = L.map('map').setView(center, 8);
+// Set the center of France defined by IGN in 1993 taking into account the
+// earth curvature (without Corse) (https://fr.wikipedia.org/wiki/Centre_de_la_France)
+const center = [46.539722, 2.430278];
+var map = L.map('map').setView(center, 6);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -62,7 +63,7 @@ L.control.searchRadius = function(opts) {
     return new L.Control.SearchRadius(opts);
 }
 
-L.control.searchRadius({ position: 'topright' }).addTo(map);
+L.control.searchRadius({ position: 'top' }).addTo(map);
 
 
 L.Control.AntennaHeight = L.Control.extend({
