@@ -35,6 +35,46 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 map.on('click', onMapClick);
 
+L.Control.Help = L.Control.extend({
+    onAdd: function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-bar');
+        var help = L.DomUtil.create('a', '', container);
+        help.id = 'help';
+        help.setAttribute('role', 'button');
+        help.href = '#';
+        help.title = 'Aide';
+        help.innerHTML = '?';
+
+        L.DomEvent.on(container, 'mousedown mouseup click touchstart', L.DomEvent.stopPropagation);
+        L.DomEvent.on(help, 'click', function (e) {
+            var usage = document.getElementById('usage');
+            var isVisible =  usage.style.visibility == 'visible'
+            if(isVisible) {
+                usage.style.visibility = 'hidden';
+            } else {
+                usage.style.visibility = 'visible';
+            }
+        });
+        //div.innerHTML = '<input id="rayon" type="range" min="500" max="30000" step="500" />'
+       // L.DomEvent.on(document.getElementById('rayon'), 'change', function(e) {
+        //    console.log('toto')
+        //});
+        return container;
+    },
+
+    onRemove: function(map) {
+        L.DomEvent.off(container, 'mousedown mouseup click touchstart', L.DomEvent.stopPropagation);
+        //L.DomEvent.off(document.getElementById('rayon'), 'change', function(e) {
+          //  console.log('toto')
+        //});
+    }
+});
+
+L.control.help = function(opts) {
+    return new L.Control.Help(opts);
+}
+
+L.control.help({ position: 'topleft' }).addTo(map);
 
 
 L.Control.SearchRadius = L.Control.extend({
