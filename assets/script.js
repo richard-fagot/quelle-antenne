@@ -14,7 +14,7 @@
 //                            Global variables                               //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
-var installationPoint = {lat: 0, lon: 0, haut: 6};
+var installationPoint = {lat: 0, lon: 0, haut: 0};
 var progress = 0;
 var supportCount = 0;
 const MAX_SAMPLING = 200;
@@ -159,6 +159,7 @@ var badRelay =  new LeafIcon({iconUrl: '/assets/img/bad-relay.png'});
  * @param {*} e Click event
  */
 function onMapClick(e) {
+    
     marker.remove();
     marker.setLatLng(e.latlng).addTo(map);
    
@@ -200,12 +201,23 @@ function onMapClick(e) {
                 for (support of supports) {
                     await setPotentialCandidate(support, installationPoint);
                 }
+                blurMap(false);
+                displayProgress(false);
             })()
         }
         
         
     );
 };
+
+function blurMap(isBlured) {
+    if(isBlured) {
+        document.querySelector(".container").classList.add("blured");
+    } else {
+        document.querySelector(".container").classList.remove("blured");
+    }
+
+}
 
 function createSearchRadiusControl() {
 
@@ -215,6 +227,10 @@ function incProgressBar() {
     progress++;
     const progressBar = getProgressBar();
     progressBar.value = progress;
+    if(progress == progressBar.max) {
+        blurMap(false);
+        displayProgress(false);
+    }
 }
 
 function setProgressMax(max) {
@@ -223,6 +239,8 @@ function setProgressMax(max) {
 }
 
 function initProgress() {
+    blurMap(true);
+    displayProgress(true);
     progress = 0;
     supportCount = 0;
     const progressBar = getProgressBar();
@@ -230,9 +248,18 @@ function initProgress() {
     progressBar.max = 0;
 }
 
+function displayProgress(isDisplayed) {
+    if(isDisplayed) {
+        document.querySelector(".ontop").style.visibility = 'visible';
+    } else {
+        document.querySelector(".ontop").style.visibility = 'hidden';
+    }
+}
+
 function getProgressBar() {
     return document.querySelector("#progress");
 }
+
 /**
  * 
  * @param {lat, lon} center 
