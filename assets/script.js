@@ -63,7 +63,7 @@ L.control.searchRadius = function(opts) {
     return new L.Control.SearchRadius(opts);
 }
 
-L.control.searchRadius({ position: 'top' }).addTo(map);
+L.control.searchRadius({ position: 'topright' }).addTo(map);
 
 
 L.Control.AntennaHeight = L.Control.extend({
@@ -75,7 +75,7 @@ L.Control.AntennaHeight = L.Control.extend({
         var height = L.DomUtil.create('input', '', container);
         height.type = 'number';
         height.id = 'hauteur';
-        height.value = 500;
+        height.value = 10;
        
 
       
