@@ -320,11 +320,21 @@ async function getInPerimetertSupports(center, radius) {
         }
     });
 
-    if(inPermiterSupports.length > 30) {
+    /*******************************************************/
+    /*******************************************************/
+    /* Need to find better way to not overload IGN services*/
+    /*******************************************************/
+    /*******************************************************/
+    if(inPermiterSupports.length > 60) {
+        /*
         const msg = document.querySelector("#msg");
-        msg.innerHTML = "<h2>Plus de 30 ("+inPermiterSupports.length+") relais détectés. Diminuez le rayon de recherche.</h2>";
+        msg.innerHTML = "<h2>Plus de 60 ("+inPermiterSupports.length+") relais détectés. Diminuez le rayon de recherche.</h2>";
+        */
+        alert("Plus de 60 ("+inPermiterSupports.length+") relais détectés. Diminuez le rayon de recherche.");
         inPermiterSupports.length = 0;
     }
+    
+
     return inPermiterSupports;
 };
 
