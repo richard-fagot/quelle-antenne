@@ -9,6 +9,16 @@
     - Miniweb HTTP server for test : https://sourceforge.net/projects/miniweb/
 */
 
+///////////////////////////////////////////////////////////////////////////////
+//                                                                           //
+//                            Global variables                               //
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+var installationPoint = {lat: 0, lon: 0, haut: 6};
+var progress = 0;
+var supportCount = 0;
+const MAX_SAMPLING = 200;
+
 // IGN Geoservices elevation line service url
 var elevationLineServiceURL = 'https://wxs.ign.fr/choisirgeoportail/alti/rest/elevationLine.json';
 const BACKEND_ROOT_URL = 'http://' + window.location.host + ':5000';
@@ -103,13 +113,7 @@ L.control.antennaHeight({ position: 'topright' }).addTo(map);
 
 
 
-//
-// Global variables
-//
-var installationPoint = {lat: 0, lon: 0, haut: 6};
-var progress = 0;
-var supportCount = 0;
-const MAX_SAMPLING = 200;
+
 
 // Saved in variable to be able to remove it when user click other location on the map.
 var marker = L.marker();
@@ -160,6 +164,8 @@ function onMapClick(e) {
    
     installationPoint.lat = e.latlng.lat;
     installationPoint.lon = e.latlng.lng;
+    installationPoint.haut = parseInt(document.querySelector("#hauteur").value);
+
     // Radius correspond to the max antenna range. This range depends on a lot
     // of criteria (frequency, obstacle, antenna type, propagation…). The 
     // literature indicates a max range from 30 to 70 km 
