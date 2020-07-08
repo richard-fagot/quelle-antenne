@@ -1,3 +1,4 @@
+
 const range = document.querySelector("#rayon");
 const bubble = document.querySelector("#bubble");
 
@@ -6,4 +7,4 @@ range.addEventListener("input", () => {
   });
 
 range.value = 500;
-bubble.innerHTML = range.value+"m"
+bubble.innerHTML = range.value+"m";
