@@ -1,3 +1,5 @@
+import {ProgressBar} from './modules/progressbar.js';
+
 /* 
     This project uses the following resources :
     - IGN Geoservices : https://geoservices.ign.fr/documentation/geoservices/index.html
@@ -15,8 +17,7 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 var installationPoint = {lat: 0, lon: 0, haut: 0};
-var progress = 0;
-var supportCount = 0;
+const progressBar = new ProgressBar(0, "#main");
 const MAX_SAMPLING = 200;
 
 // IGN Geoservices elevation line service url
@@ -226,7 +227,7 @@ function onMapClick(e) {
     azimuts.forEach(azimut => azimut.remove());
     azimuts.length = 0;
 
-    initProgress();
+    progressBar.initProgress();
     const msg = document.querySelector("#msg");
     msg.innerHTML = "";
     
@@ -236,69 +237,19 @@ function onMapClick(e) {
         // call setPotentialCandidate in sequencial. Use this to limit issue
         // from the geoservice which cannot respond to too much call at a time
         supports => {
-            setProgressMax(supports.length);
+            progressBar.setMax(supports.length);
             (async function() {
-                for (support of supports) {
+                for (var support of supports) {
                     await setPotentialCandidate(support, installationPoint);
                 }
-                blurMap(false);
-                displayProgress(false);
+
+                progressBar.displayProgress(false);
             })()
         }
         
         
     );
 };
-
-function blurMap(isBlured) {
-    if(isBlured) {
-        document.querySelector(".container").classList.add("blured");
-    } else {
-        document.querySelector(".container").classList.remove("blured");
-    }
-
-}
-
-function createSearchRadiusControl() {
-
-}
-
-function incProgressBar() {
-    progress++;
-    const progressBar = getProgressBar();
-    progressBar.value = progress;
-    if(progress == progressBar.max) {
-        blurMap(false);
-        displayProgress(false);
-    }
-}
-
-function setProgressMax(max) {
-    const progressBar = getProgressBar();
-    progressBar.max = max;
-}
-
-function initProgress() {
-    blurMap(true);
-    displayProgress(true);
-    progress = 0;
-    supportCount = 0;
-    const progressBar = getProgressBar();
-    progressBar.value = 0;
-    progressBar.max = 0;
-}
-
-function displayProgress(isDisplayed) {
-    if(isDisplayed) {
-        document.querySelector(".ontop").style.visibility = 'visible';
-    } else {
-        document.querySelector(".ontop").style.visibility = 'hidden';
-    }
-}
-
-function getProgressBar() {
-    return document.querySelector("#progress");
-}
 
 /**
  * 
@@ -368,7 +319,7 @@ async function setPotentialCandidate(support, userPos) {
     // Set for each antenna if it is "à vue" or not
     antennas.forEach(antenna => isVisible(support, antenna, userPos, elevationLine));
     
-    incProgressBar();
+    progressBar.incProgressBar();
     var lineSerie = [0];
     displayRelay(support, lineSerie);
   
@@ -392,7 +343,7 @@ function isVisible(support, antenna, userPos, elevationLine) {
 
     const elevationLineSerie = support.elevationLineSerie;
 
-    for(var x = 0 ; x < elevationPointsCount ; x++) {
+    for( let x = 0 ; x < elevationPointsCount ; x++) {
         const elevation = elevationLineSerie[x].y;
         const elevationPointDistanceToRelay = elevationLineSerie[x].x;
 
@@ -416,12 +367,12 @@ function createElevationLineSerie(elevationLine) {
 
     var elevationLineSerie = [];
 
-    for(var x = 0 ; x < elevationPointsCount ; x++) {
+    for( let x = 0 ; x < elevationPointsCount ; x++) {
         var lat = elevationLine.elevations[x].lat;
         var lon = elevationLine.elevations[x].lon;
         var elevation = elevationLine.elevations[x].z;
 
-        elevationPointDistanceToSupport = Math.trunc(distance(lat, lon, supportLat, supportLon, "K")*1000);
+        const elevationPointDistanceToSupport = Math.trunc(distance(lat, lon, supportLat, supportLon, "K")*1000);
         
         elevationLineSerie.push({x: elevationPointDistanceToSupport, y: elevation});
     }
@@ -429,64 +380,17 @@ function createElevationLineSerie(elevationLine) {
     return elevationLineSerie
 };
 
-// select substr(coordonnees, 1, pos-1) as lat, substr(coordonnees, pos+1) as lon
-//from (select coordonnees, instr(coordonnees, ', ') as pos from Antennes group by coordonnees)
-
-//insert into antenne (lat, lon) select substr(coordonnees, 1, pos-1) as lat, substr(coordonnees, pos+1) as lon
-//from (select coordonnees, instr(coordonnees, ', ') as pos from Antennes_raw group by coordonnees)
-/*
-Latitude : 1°=+-111 km
-
-Longitude, ça dépend de la latitude :
-à nice 1°=+-82 km
-à Lille 1°=+-71 km
-
-Tu peux prendre 76 km de moyenne pour la france, ce sera plus simple
-
-
-Convertir les coordonnées degrés/minutes/secondes en degré
-select case 
-   when dirLat=="S" 
-      then -1*(dLat+mLat/60.0+sLat/3600.0) 
-      else (dLat+mLat/60.0+sLat/3600.0) 
-   end as lat,
-   case
-   when dirLon=="W" 
-      then -1*(dLon+mLon/60.0+sLon/3600.0) 
-      else (dLon+mLon/60.0+sLon/3600.0) 
-   end as lon
-   from (select COR_NB_DG_LAT as dLat, COR_NB_MN_LAT as mLat, COR_NB_SC_LAT as sLat, COR_CD_NS_LAT as dirLat,
-                COR_NB_DG_LON as dLon, COR_NB_MN_LON as mLon, COR_NB_SC_LON as sLon, COR_CD_EW_LON as dirLon
-         from SUP_SUPPORT )
-
-Mettre à jour les supports avec les latitudes et longitudes en degrés
-update SUP_SUPPORT set lat = case 
-   when SUP_SUPPORT.COR_CD_NS_LAT=="S" 
-      then -1*(SUP_SUPPORT.COR_NB_DG_LAT+SUP_SUPPORT.COR_NB_MN_LAT/60.0+SUP_SUPPORT.COR_NB_SC_LAT/3600.0) 
-      else (SUP_SUPPORT.COR_NB_DG_LAT+SUP_SUPPORT.COR_NB_MN_LAT/60.0+SUP_SUPPORT.COR_NB_SC_LAT/3600.0) 
-   end
-   
-update SUP_SUPPORT set lon = case 
-   when SUP_SUPPORT.COR_CD_EW_LON=="W" 
-      then -1*(SUP_SUPPORT.COR_NB_DG_LON+SUP_SUPPORT.COR_NB_MN_LON/60.0+SUP_SUPPORT.COR_NB_SC_LON/3600.0) 
-      else (SUP_SUPPORT.COR_NB_DG_LON+SUP_SUPPORT.COR_NB_MN_LON/60.0+SUP_SUPPORT.COR_NB_SC_LON/3600.0) 
-   end
-   
-*/
-
-
-5
 function displayRelay(relay, profileSerie, lineSerie) {
     var m = L.marker([relay.lat, relay.lon], {icon: badRelay});
 
     let isSupportVisible = false;
     let visibleOperators = new Set();
     let maskedOperators = new Set();
-    for(ant of relay.antennes) {
+    for( let ant of relay.antennes) {
         if(ant.isVisible == 1) {
             isSupportVisible = true;
-            for(aer of ant.aer_ids) {
-                for( op of aer.operators) {
+            for( let aer of ant.aer_ids) {
+                for( let op of aer.operators) {
                     visibleOperators.add(op);
                     if(maskedOperators.has(op)) {
                         maskedOperators.delete(op);
@@ -495,8 +399,8 @@ function displayRelay(relay, profileSerie, lineSerie) {
                 drawAzimut(relay, aer.azimut, visibleOperators);
             }
         } else {
-            for(aer of ant.aer_ids) {
-                for( op of aer.operators) {
+            for( let aer of ant.aer_ids) {
+                for( let op of aer.operators) {
                     if(!visibleOperators.has(op)) {
                         maskedOperators.add(op);
                     }
@@ -521,7 +425,7 @@ function displayRelay(relay, profileSerie, lineSerie) {
 
     if(isSupportVisible) {
         const sortedOperators = [...visibleOperators].sort();
-        for(op of sortedOperators) {
+        for( let op of sortedOperators) {
             if("BOUYGUES TELECOM".localeCompare(op) == 0) {
                 opMarkerString += 'b';
             } else if("FREE MOBILE".localeCompare(op) == 0) {
@@ -537,19 +441,19 @@ function displayRelay(relay, profileSerie, lineSerie) {
     }
 
     let ops = '<div><p><b>Opérateurs "à vue"</b></p>';
-    for(op of visibleOperators) {
+    for( let op of visibleOperators) {
         ops += op + ',';
     }
     ops += '</div>';
 
     let maskedOps = '<div><p><b>Opérateurs masqués par le relief</b></p>';
-    for(op of maskedOperators) {
+    for( let op of maskedOperators) {
         maskedOps += op + ',';
     }
     maskedOps += '</div>';
 
     var availableOperators = '<center><table>';
-    for(op of ["BOUYGUES TELECOM", "FREE MOBILE", "ORANGE", "SFR"]) {
+    for( let op of ["BOUYGUES TELECOM", "FREE MOBILE", "ORANGE", "SFR"]) {
         if(visibleOperators.has(op)) {
             availableOperators += '<tr><td class="operatorName"><b>'+op+'</b></td><td class="visibleOperator"></td></tr>'
         } else if (maskedOperators.has(op)) {
