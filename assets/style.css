@@ -106,3 +106,23 @@ body {
   justify-content: center;
   padding: 1em;
 }
+
+
+.operatorName {
+  width: 16em;
+}
+.visibleOperator, .maskedOperator {
+  width: 3em;
+}
+
+.visibleOperator {
+  background-color: green;
+}
+
+.maskedOperator {
+  background-color: grey;
+}
+
+table {
+  border: 1px solid #000;
+}

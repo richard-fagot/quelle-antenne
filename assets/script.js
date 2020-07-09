@@ -548,7 +548,27 @@ function displayRelay(relay, profileSerie, lineSerie) {
     }
     maskedOps += '</div>';
 
-    m.bindPopup('<div>Support : ' + relay.supId + '</div>'+ops+maskedOps+'<div class="ct-chart ct-perfect-fourth" id="chart'+relay.supId+'"></div><div>'+relay.lat+', '+relay.lon+'</div>', {minWidth: 350});
+    var availableOperators = '<center><table>';
+    for(op of ["BOUYGUES TELECOM", "FREE MOBILE", "ORANGE", "SFR"]) {
+        if(visibleOperators.has(op)) {
+            availableOperators += '<tr><td class="operatorName"><b>'+op+'</b></td><td class="visibleOperator"></td></tr>'
+        } else if (maskedOperators.has(op)) {
+            availableOperators += '<tr><td class="operatorName"><b>'+op+'</b></td><td class="maskedOperator"></td></tr>'
+        }
+    }
+    availableOperators += '</table></center>';
+
+    var home = turf.point([installationPoint.lon, installationPoint.lat]);
+    var ant = turf.point([relay.lon, relay.lat]);
+    var bearing = turf.bearing(home, ant);
+
+    m.bindPopup('<div><b>Support : </b>' + relay.supId + '</div>'
+                +'<div><b>Coordonnées : </b>' + relay.lat.toFixed(6) + ', ' + relay.lon.toFixed(6) + '</div>'
+                + '<div><b>Angle de visée géographique : </b>' + bearing.toFixed(2) + '°</div>'
+                + '<div><p><b> Opérateurs "à vue" :</b></p>'
+                + availableOperators
+                + '<br/></div>'
+                +'<div class="ct-chart ct-major-twelfth" id="chart'+relay.supId+'"></div>', {minWidth: 350});
     
     relayMarkers.push(m);
     m.addTo(map);
