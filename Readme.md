@@ -8,6 +8,29 @@ Ce projet propose une carte permettant d'identifier les antennes relai 4G "à vu
 - [SQLite tools](https://www.sqlite.org/download.html) ;
 
 ## Démarrer la partie Web
+Avant j'utilisais [Miniweb HTTP server](https://sourceforge.net/projects/miniweb/) mais lorsque j'ai commencé à utiliser les modules javascript il renvoyait le mauvais type MIME (text/html au lieu de application/javascript) et ce n'est pas configurable. Je suis donc passé à *nginx* qui se trouve être la cible pour la production.
+
+### NGINX
+Aprés avoir installé [nginx](http://nginx.org/en/download.html) pour windows, éditer le fichier `<NGINX_HOME>\conf\nginx.conf` et positionner la directive `root` vers le chemin d'accès au projet (sans oublier le « ; » à la fin), par exemple :
+
+```bash
+server {
+…
+    location / {
+…
+        root D:/Projets/quelle-antenne;
+…
+```
+
+Ensuite aller dans le répertoire d'installation de *nginx* :
+
+```bash
+start nginx
+```
+
+et suivre le [petit guide d'utilisation](http://nginx.org/en/docs/windows.html) de *nginx* pour en savoir plus.
+
+### Ancienne méthode pour mémoire
 Utiliser [Miniweb HTTP server](https://sourceforge.net/projects/miniweb/) 
 
 ```bash
@@ -116,7 +139,7 @@ sudo ln -s ../sites-available/quelle-antenne .`
 
 Pour terminer on relance les deux serveurs :
 
-```sh
+```bash
 sudo service nginx restart
 sudo service uwsgi  restart
 ```
